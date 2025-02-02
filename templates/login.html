@@ -1,0 +1,20 @@
+<!-- templates/login.html -->
+{% extends "base.html" %}
+{% block title %}Login - ChatMap{% endblock %}
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Bem-vindo</h2>
+    <form method="post" class="auth-form">
+      <input type="text" name="username" placeholder="Usuário" required>
+      <input type="password" name="password" placeholder="Senha" required>
+      <!-- Adicionado a classe "aero" para estilizar o botão de entrar -->
+      <button type="submit" class="aero">Entrar</button>
+    </form>
+    <p class="auth-link">Não tem conta? <a href="{{ url_for('register') }}">Registre-se</a></p>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

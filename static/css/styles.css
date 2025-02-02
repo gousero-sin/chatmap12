@@ -1,0 +1,381 @@
+/* static/css/styles.css */
+
+/* Importa a fonte moderna */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+/* Variáveis globais */
+:root {
+  --bg-main: repeating-linear-gradient(
+    to bottom,
+    #e0f7fa,
+    #e0f7fa 2px,
+    #ffffff 2px,
+    #ffffff 4px
+  );
+  --dark-bg: repeating-linear-gradient(
+    to bottom,
+    #222,
+    #222 2px,
+    #333,
+    #333 4px
+  );
+  --bottom-glow: radial-gradient(farthest-corner at bottom center, rgba(255,255,255,0.7), transparent);
+}
+
+/* Estilos globais */
+body {
+  font-family: 'Nunito', sans-serif;
+  margin: 0;
+  background: var(--bg-main);
+  color: #333;
+  transition: background 0.5s, color 0.5s;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Dark Mode: fundo escuro com listras claras e alterações em quase todos os elementos */
+.dark-mode {
+  background: var(--dark-bg);
+  color: #e0e0e0;
+}
+.dark-mode .auth-card,
+.dark-mode .sidebar,
+.dark-mode .chat-main,
+.dark-mode .messages,
+.dark-mode #map-container,
+.dark-mode #location-popup {
+  background: #2b2b2b;
+  color: #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes flick {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Layout de Autenticação */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  animation: fadeIn 1s ease-out;
+  background: var(--bg-main);
+  flex-direction: column;
+}
+
+.auth-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  width: 350px;
+  text-align: center;
+  animation: slideUp 0.8s ease-out;
+  margin: 1em;
+}
+
+.auth-card h2 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #5a2d82;
+}
+
+/* Inputs do formulário de Autenticação */
+.auth-form input {
+  width: 90%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: border 0.3s;
+  align-content: center;
+}
+.auth-form input:focus {
+  border-color: #00bcd4;
+  outline: none;
+}
+
+/* Botões de Autenticação (Login e Registro) – Estilo Aero */
+button.aero {
+  --button-color: oklch(75% 0.1 245);
+  --button-background: oklch(from var(--button-color) l c h / 0.8);
+  --bg-dark: oklch(from var(--button-color) calc(l - 0.3) c h / 0.75);
+  --button-foreground: oklch(from var(--button-color) calc(l - 0.6) calc(c / 2) h);
+  background-color: var(--button-background);
+  background: var(--bottom-glow), linear-gradient(to bottom, var(--bg-dark), var(--button-background));
+  box-shadow: 0 4px 4px rgba(0,0,0,0.4);
+  border: 1px solid var(--button-background);
+  border-radius: 9999px;
+  color: var(--button-foreground);
+  cursor: pointer;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", "Lunasima", sans-serif;
+  font-weight: 600;
+  margin: 1em 1ex;
+  padding: 1ex 1em;
+  position: relative;
+  text-shadow: 0 2px 0.5em #0003;
+  transition: all 300ms;
+}
+button.aero::after {
+  content: "";
+  position: absolute;
+  top: 4%;
+  left: 3%;
+  width: 94%;
+  height: 40%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1));
+  border-radius: 9999px;
+  transition: background 400ms;
+}
+button.aero:hover,
+button.aero:focus {
+  box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+}
+button.aero:active {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* Links de Autenticação */
+.auth-link {
+  margin-top: 15px;
+  font-size: 14px;
+}
+.auth-link a {
+  color: #00bcd4;
+  text-decoration: none;
+}
+
+/* Layout do Chat */
+.chat-container {
+  display: flex;
+  height: 100vh;
+  padding: 10px;
+  box-sizing: border-box;
+  background: var(--bg-main);
+  gap: 5px;
+}
+
+/* Sidebar: Usuários Online e Toggle de Dark Mode (à esquerda) */
+.sidebar {
+  width: 240px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sidebar h3 {
+  margin: 0;
+  color: #5a2d82;
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar li {
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Ícone de perfil usando Font Awesome – não depende de imagens manuais */
+.user-item i {
+  font-size: 30px;
+  color: #5a2d82;
+}
+
+/* Toggle de Dark Mode na Sidebar */
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.dark-toggle label {
+  font-size: 14px;
+  color: #5a2d82;
+}
+.dark-toggle input[type="checkbox"] {
+  -webkit-appearance: none;
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  outline: none;
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+.dark-toggle input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  top: 1px;
+  left: 1px;
+  transition: transform 0.3s;
+}
+.dark-toggle input[type="checkbox"]:checked {
+  background: #00bcd4;
+}
+.dark-toggle input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+/* Área principal do Chat */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+}
+
+/* Container do Mapa */
+#map-container {
+  position: relative;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+  flex: 1;
+}
+#map-container:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+/* Popup para confirmação de envio de localização */
+#location-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  padding: 15px;
+  z-index: 1000;
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+#location-popup.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+#location-popup p {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+/* Botões no popup */
+#location-popup button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Área de Mensagens */
+.messages {
+  flex: 2;
+  overflow-y: auto;
+  padding: 10px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Cada Mensagem Individual */
+.message {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Formulário de Envio de Mensagem */
+#message-form {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+#message-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  transition: border 0.3s;
+}
+#message-input:focus {
+  border-color: #00bcd4;
+  outline: none;
+}
+
+/* Botão de Envio (Estilo Bolha de Água) */
+.btn-send {
+  background: radial-gradient(circle at 50% 50%, #00bcd4, #009688);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-send:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+/* Botão de Logout */
+.btn-logout {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 15px;
+  background: #f44336;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+.btn-logout:hover {
+  background: #d32f2f;
+}

@@ -1,0 +1,19 @@
+<!-- Atualização em templates/register.html -->
+{% extends "base.html" %}
+{% block title %}Registro - ChatMap{% endblock %}
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Registre-se</h2>
+    <form method="post" class="auth-form">
+      <input type="text" name="username" placeholder="Usuário" required>
+      <input type="password" name="password" placeholder="Senha" required>
+      <button type="submit" class="aero">Registrar</button>
+    </form>
+    <p class="auth-link">Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
