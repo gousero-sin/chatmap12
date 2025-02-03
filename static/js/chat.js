@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const popupNo = document.getElementById('popup-no');
   const clearMessagesBtn = document.getElementById('clear-messages');
   const darkModeSwitch = document.getElementById('dark-mode-switch');
+  const menuBtn = document.getElementById('menu-btn');
+  const menuPopup = document.getElementById('menu-popup');
   let pendingLocation = null;
   let lastMessageId = 0;
   let currentUsers = [];
@@ -33,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Dark mode toggle: update map tiles as well
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener('change', function() {
       if (darkModeSwitch.checked) {
@@ -56,6 +57,22 @@ document.addEventListener('DOMContentLoaded', function() {
         tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors'
         }).addTo(map);
+      }
+    });
+  }
+
+  if (menuBtn && menuPopup) {
+    menuBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (menuPopup.style.display === 'none' || menuPopup.style.display === '') {
+        menuPopup.style.display = 'block';
+      } else {
+        menuPopup.style.display = 'none';
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!menuPopup.contains(e.target) && e.target !== menuBtn) {
+        menuPopup.style.display = 'none';
       }
     });
   }

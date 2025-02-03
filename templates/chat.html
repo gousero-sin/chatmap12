@@ -1,206 +1,5 @@
 {% extends "base.html" %}
 {% block title %}ChatMap{% endblock %}
-{% block head %}
-<style>
-  /* Insira aqui os estilos específicos para a tela de chat ou mantenha-os no styles.css */
-  .chat-container {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: auto 1fr auto;
-    grid-template-areas:
-      "sidebar header"
-      "sidebar main"
-      "sidebar footer";
-    height: 100vh;
-    gap: 5px;
-    padding: 10px;
-    box-sizing: border-box;
-    background: var(--bg-main);
-  }
-  .sidebar {
-    grid-area: sidebar;
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: var(--glass-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .sidebar h3 {
-    margin: 0;
-    color: var(--accent-color);
-  }
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex: 1;
-    overflow-y: auto;
-  }
-  .sidebar li {
-    margin: 5px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .user-item i {
-    font-size: 30px;
-    color: var(--accent-color);
-  }
-  .dark-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    margin-bottom: 10px;
-  }
-  .dark-toggle label {
-    font-size: 14px;
-    color: var(--accent-color);
-  }
-  .chat-main {
-    grid-area: main;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    overflow: hidden;
-  }
-  #map-container {
-    position: relative;
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    border-radius: 15px;
-    box-shadow: var(--glass-shadow);
-    overflow: hidden;
-    transition: box-shadow var(--transition-speed);
-    flex: 1;
-  }
-  #map-container:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  }
-  #map {
-    height: 100%;
-    width: 100%;
-  }
-  #location-popup {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    box-shadow: var(--glass-shadow);
-    padding: 15px;
-    z-index: 1000;
-    opacity: 0;
-    transition: transform var(--transition-speed) ease-out, opacity var(--transition-speed) ease-out;
-  }
-  #location-popup.show {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  #location-popup p {
-    margin: 0 0 10px;
-    font-size: 14px;
-  }
-  #location-popup button {
-    margin: 0 5px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  .messages {
-    grid-area: header / header / footer / footer;
-    overflow-y: auto;
-    padding: 10px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-  }
-  .message {
-    padding: 10px;
-    margin-bottom: 10px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    animation: animate__fadeIn 0.5s;
-  }
-  .chat-controls {
-    grid-area: footer;
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 5px;
-  }
-  #message-form {
-    grid-area: footer;
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  #message-input {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 25px;
-    transition: border var(--transition-speed);
-  }
-  #message-input:focus {
-    border-color: var(--primary-color);
-    outline: none;
-  }
-  .btn-send {
-    background: radial-gradient(circle at 50% 50%, var(--primary-color), var(--secondary-color));
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    color: #fff;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-  }
-  .btn-send:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-  }
-  .btn-logout {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 15px;
-    background: #f44336;
-    color: #fff;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: background var(--transition-speed);
-  }
-  .btn-logout:hover {
-    background: #d32f2f;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-</style>
-{% endblock %}
 {% block content %}
 <div class="chat-container">
   <div class="sidebar">
@@ -235,11 +34,22 @@
       </button>
     </div>
     <form id="message-form">
+      <button type="button" id="menu-btn" class="aero">
+        <i class="fas fa-plus"></i>
+      </button>
       <input type="text" id="message-input" placeholder="Digite sua mensagem..." autocomplete="off">
       <button type="submit" class="btn-send">
         <i class="fas fa-paper-plane"></i>
       </button>
     </form>
+    <div id="menu-popup">
+      <button type="button" class="menu-option">
+        <i class="fas fa-paperclip"></i> Anexar Arquivo
+      </button>
+      <button type="button" class="menu-option">
+        <i class="fas fa-microphone"></i> Gravar Áudio
+      </button>
+    </div>
   </div>
 </div>
 {% endblock %}
