@@ -1,5 +1,3 @@
-/* static/css/styles.css */
-
 /* Importa a fonte moderna */
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
 
@@ -34,40 +32,66 @@ body {
   overflow: hidden;
 }
 
-/* Dark Mode: fundo escuro com listras claras e alterações em quase todos os elementos */
-.dark-mode {
-  background: var(--dark-bg);
-  color: #e0e0e0;
+/* --------------------------- */
+/* Componente de Loading */
+/* --------------------------- */
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #3e6fa3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
 }
-.dark-mode .auth-card,
-.dark-mode .sidebar,
-.dark-mode .chat-main,
-.dark-mode .messages,
-.dark-mode #map-container,
-.dark-mode #location-popup {
-  background: #2b2b2b;
-  color: #e0e0e0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px);
+.wrapper {
+  position: relative;
+  width: 0;
+  height: 0;
+  perspective: 500px;
 }
-
-/* Animações */
-@keyframes fadeIn {
+.wrapper i {
+  display: block;
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  opacity: 0;
+  background: rgba(255,255,255,0.5);
+  box-shadow: 0 0 10px rgba(255,255,255,1);
+  animation-name: spin;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+/* Exemplo para os dois primeiros elementos – para os demais, gere via loop */
+.wrapper i:nth-child(1) {
+  transform: rotate(calc(1 / 62 * 720deg)) translate3d(80px, 0, 0);
+  animation-delay: calc(1 * 3s / 62);
+}
+.wrapper i:nth-child(2) {
+  transform: rotate(calc(2 / 62 * 720deg)) translate3d(80px, 0, 0);
+  animation-delay: calc(2 * 3s / 62);
+}
+/* ... (até i:nth-child(62)) ... */
+@keyframes spin {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to { opacity: 0.6; transform: translate3d(-4px, -4px, 570px); }
+}
+.loading-text {
+  position: absolute;
+  color: #fff;
+  font-size: 18px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  z-index: 10001;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes flick {
-  0% { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
+/* --------------------------- */
 /* Layout de Autenticação */
+/* --------------------------- */
 .auth-container {
   display: flex;
   justify-content: center;
@@ -77,7 +101,6 @@ body {
   background: var(--bg-main);
   flex-direction: column;
 }
-
 .auth-card {
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(8px);
@@ -89,14 +112,11 @@ body {
   animation: slideUp 0.8s ease-out;
   margin: 1em;
 }
-
 .auth-card h2 {
   margin-bottom: 20px;
   font-weight: 600;
   color: #5a2d82;
 }
-
-/* Inputs do formulário de Autenticação */
 .auth-form input {
   width: 90%;
   padding: 12px;
@@ -110,8 +130,6 @@ body {
   border-color: #00bcd4;
   outline: none;
 }
-
-/* Botões de Autenticação (Login e Registro) – Estilo Aero */
 button.aero {
   --button-color: oklch(75% 0.1 245);
   --button-background: oklch(from var(--button-color) l c h / 0.8);
@@ -150,8 +168,6 @@ button.aero:focus {
 button.aero:active {
   box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
-
-/* Links de Autenticação */
 .auth-link {
   margin-top: 15px;
   font-size: 14px;
@@ -161,7 +177,9 @@ button.aero:active {
   text-decoration: none;
 }
 
+/* --------------------------- */
 /* Layout do Chat */
+/* --------------------------- */
 .chat-container {
   display: flex;
   height: 100vh;
@@ -170,8 +188,6 @@ button.aero:active {
   background: var(--bg-main);
   gap: 5px;
 }
-
-/* Sidebar: Usuários Online e Toggle de Dark Mode (à esquerda) */
 .sidebar {
   width: 240px;
   background: rgba(255,255,255,0.85);
@@ -198,13 +214,10 @@ button.aero:active {
   align-items: center;
   gap: 10px;
 }
-/* Ícone de perfil usando Font Awesome – não depende de imagens manuais */
 .user-item i {
   font-size: 30px;
   color: #5a2d82;
 }
-
-/* Toggle de Dark Mode na Sidebar */
 .dark-toggle {
   display: flex;
   align-items: center;
@@ -244,8 +257,6 @@ button.aero:active {
 .dark-toggle input[type="checkbox"]:checked::before {
   transform: translateX(20px);
 }
-
-/* Área principal do Chat */
 .chat-main {
   flex: 1;
   display: flex;
@@ -253,8 +264,6 @@ button.aero:active {
   gap: 5px;
   overflow: hidden;
 }
-
-/* Container do Mapa */
 #map-container {
   position: relative;
   border-radius: 15px;
@@ -271,8 +280,6 @@ button.aero:active {
   height: 100%;
   width: 100%;
 }
-
-/* Popup para confirmação de envio de localização */
 #location-popup {
   position: absolute;
   top: 50%;
@@ -295,7 +302,6 @@ button.aero:active {
   margin: 0 0 10px;
   font-size: 14px;
 }
-/* Botões no popup */
 #location-popup button {
   margin: 0 5px;
   padding: 5px 10px;
@@ -304,8 +310,6 @@ button.aero:active {
   cursor: pointer;
   font-size: 14px;
 }
-
-/* Área de Mensagens */
 .messages {
   flex: 2;
   overflow-y: auto;
@@ -315,8 +319,6 @@ button.aero:active {
   border-radius: 10px;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
-
-/* Cada Mensagem Individual */
 .message {
   padding: 10px;
   margin-bottom: 10px;
@@ -324,8 +326,6 @@ button.aero:active {
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-
-/* Formulário de Envio de Mensagem */
 #message-form {
   display: flex;
   gap: 10px;
@@ -343,8 +343,6 @@ button.aero:active {
   border-color: #00bcd4;
   outline: none;
 }
-
-/* Botão de Envio (Estilo Bolha de Água) */
 .btn-send {
   background: radial-gradient(circle at 50% 50%, #00bcd4, #009688);
   border: none;
@@ -364,8 +362,6 @@ button.aero:active {
   transform: scale(1.1);
   box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
-
-/* Botão de Logout */
 .btn-logout {
   display: inline-block;
   margin-top: 10px;
@@ -378,4 +374,12 @@ button.aero:active {
 }
 .btn-logout:hover {
   background: #d32f2f;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

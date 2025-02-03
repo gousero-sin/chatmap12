@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
+from flask_socketio import SocketIO, emit
 from datetime import datetime, timedelta
 import json
 
@@ -12,13 +13,12 @@ app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Inicializa as extensões
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 bcrypt = Bcrypt(app)
+socketio = SocketIO(app)
 
-# Cria as tabelas (se ainda não existirem)
 with app.app_context():
     db.create_all()
 
@@ -26,14 +26,12 @@ with app.app_context():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Rota raiz: redireciona para chat se logado, senão para login.
 @app.route('/')
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
     return redirect(url_for('login'))
 
-# Registro de usuário
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
@@ -51,7 +49,6 @@ def register():
             return redirect(url_for('chat'))
     return render_template('register.html', error=error)
 
-# Login de usuário
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -61,7 +58,6 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
-            # Atualiza o last_active
             user.last_active = datetime.utcnow()
             db.session.commit()
             return redirect(url_for('chat'))
@@ -69,52 +65,17 @@ def login():
             error = 'Credenciais inválidas.'
     return render_template('login.html', error=error)
 
-# Logout
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# Tela do chat e mapa interativo
 @app.route('/chat')
 @login_required
 def chat():
     return render_template('chat.html')
 
-# Endpoint para envio de mensagens (texto ou localização)
-@app.route('/send_message', methods=['POST'])
-@login_required
-def send_message():
-    data = request.get_json()
-    if not data:
-        return jsonify({'status': 'erro', 'mensagem': 'Dados inválidos.'}), 400
-
-    is_location = data.get('is_location', False)
-    if is_location:
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
-        message = Message(
-            username=current_user.username,
-            content=None,
-            is_location=True,
-            latitude=latitude,
-            longitude=longitude
-        )
-    else:
-        content = data.get('content')
-        if not content or content.strip() == '':
-            return jsonify({'status': 'erro', 'mensagem': 'Conteúdo vazio.'}), 400
-        message = Message(
-            username=current_user.username,
-            content=content,
-            is_location=False
-        )
-    db.session.add(message)
-    db.session.commit()
-    return jsonify({'status': 'sucesso'})
-
-# Endpoint para buscar mensagens (últimas 50)
 @app.route('/get_messages')
 @login_required
 def get_messages():
@@ -132,22 +93,6 @@ def get_messages():
         })
     return jsonify({'messages': messages})
 
-# Atualiza a localização do usuário (opcional, pode ser chamado via polling se desejar)
-@app.route('/update_location', methods=['POST'])
-@login_required
-def update_location():
-    data = request.get_json()
-    latitude = data.get('latitude')
-    longitude = data.get('longitude')
-    if latitude is not None and longitude is not None:
-        current_user.latitude = latitude
-        current_user.longitude = longitude
-        current_user.last_active = datetime.utcnow()
-        db.session.commit()
-        return jsonify({'status': 'sucesso'})
-    return jsonify({'status': 'erro', 'mensagem': 'Dados inválidos.'}), 400
-
-# Endpoint para obter a lista de usuários online (considera usuários ativos nos últimos 60 segundos)
 @app.route('/get_users')
 @login_required
 def get_users():
@@ -156,14 +101,41 @@ def get_users():
     users_list = [user.username for user in users]
     return jsonify({'users': users_list})
 
-# Atualiza o last_active do usuário em cada requisição autenticada
 @app.before_request
 def update_last_active():
     if current_user.is_authenticated:
         current_user.last_active = datetime.utcnow()
         db.session.commit()
 
-if __name__ == '__main__':
-    app.run(port=8080, debug=True, ssl_context='adhoc', threaded=True)
+@socketio.on('send_message')
+def handle_send_message(data):
+    if current_user.is_authenticated:
+        if data.get('is_location'):
+            message = Message(
+                username=current_user.username,
+                content=None,
+                is_location=True,
+                latitude=data.get('latitude'),
+                longitude=data.get('longitude')
+            )
+        else:
+            message = Message(
+                username=current_user.username,
+                content=data.get('content'),
+                is_location=False
+            )
+        db.session.add(message)
+        db.session.commit()
+        emit('new_message', {
+            'id': message.id,
+            'username': message.username,
+            'content': message.content,
+            'timestamp': message.timestamp.strftime('%H:%M:%S'),
+            'is_location': message.is_location,
+            'latitude': message.latitude,
+            'longitude': message.longitude
+        }, broadcast=True)
 
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', debug=True, ssl_context='adhoc')
 
