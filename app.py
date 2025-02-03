@@ -5,13 +5,16 @@ from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
 from datetime import datetime, timedelta
 import json
+import os
 
 from models import db, User, Message
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'chat.db')
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -31,6 +34,17 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
     return redirect(url_for('login'))
+
+@app.route('/clear_messages', methods=['POST'])
+@login_required
+def clear_messages():
+    try:
+        Message.query.delete()
+        db.session.commit()
+        return jsonify({'status': 'sucesso'})
+    except Exception as e:
+        return jsonify({'status': 'erro', 'message': str(e)}), 500
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
