@@ -1,4 +1,11 @@
+// static/js/chat.js
 document.addEventListener('DOMContentLoaded', function() {
+    // Exibe a tela de loading por 3 segundos após logar
+    showLoading("Carregando...");
+    setTimeout(function() {
+      hideLoading();
+    }, 6000);
+  
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
     const messagesDiv = document.getElementById('messages');
