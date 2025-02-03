@@ -1,36 +1,26 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}ChatMap{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <!-- Font Awesome para ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Animate.css para animações -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   {% block head %}{% endblock %}
 </head>
 <body class="animate__animated animate__fadeIn">
-  <!-- Componente de Loading (inicialmente oculto) -->
-  <div id="loading-container" class="loading-container" style="display: none;">
+  <div id="loading-container" class="loading-container" style="display:none;">
     <div class="wrapper">
-      <!-- Para produção, gere 62 elementos <i> via loop ou pré-processador. Exemplo: -->
-      <i></i>
-      <i></i>
-      <i></i>
-      <i></i>
-      <!-- ... até 62 elementos ... -->
+      {% for i in range(62) %}
+        <i></i>
+      {% endfor %}
     </div>
     <div class="loading-text">Carregando...</div>
   </div>
-
   {% block content %}{% endblock %}
-
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- Socket.IO -->
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
   <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
   <script src="{{ url_for('static', filename='js/loading.js') }}"></script>

@@ -1,20 +1,19 @@
+# app.py
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
 from datetime import datetime, timedelta
-import json
 import os
-
+import json
 from models import db, User, Message
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'chat.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -44,7 +43,6 @@ def clear_messages():
         return jsonify({'status': 'sucesso'})
     except Exception as e:
         return jsonify({'status': 'erro', 'message': str(e)}), 500
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -152,4 +150,3 @@ def handle_send_message(data):
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', debug=True, ssl_context='adhoc')
-

@@ -1,12 +1,9 @@
+// static/js/chat.js
 document.addEventListener('DOMContentLoaded', function() {
-  // Executa a tela de loading somente se estivermos na página de chat
   if (document.getElementById('message-form')) {
     showLoading("Carregando...");
-    setTimeout(function() {
-      hideLoading();
-    }, 6000);
+    setTimeout(function() { hideLoading(); }, 6000);
   }
-
   const messageForm = document.getElementById('message-form');
   const messageInput = document.getElementById('message-input');
   const messagesDiv = document.getElementById('messages');
@@ -19,26 +16,18 @@ document.addEventListener('DOMContentLoaded', function() {
   let pendingLocation = null;
   let lastMessageId = 0;
   let currentUsers = [];
-
-  // Cria um marker customizado usando Font Awesome
   const customIcon = L.divIcon({
     html: '<i class="fas fa-map-marker-alt" style="color:#d32f2f;font-size:28px;"></i>',
     className: 'custom-div-icon',
     iconSize: [30, 42],
     iconAnchor: [15, 42]
   });
-
-  // Inicializa o Socket.IO
   const socket = io();
-
-  // Inicializa o mapa e expõe-o globalmente para uso do hyperlink
   const map = L.map('map').setView([0, 0], 2);
   window.map = map;
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
-
-  // Recebe mensagens em tempo real
   socket.on('new_message', function(data) {
     const msgElem = document.createElement('div');
     msgElem.classList.add('message');
@@ -52,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
     messagesDiv.appendChild(msgElem);
     lastMessageId = data.id;
   });
-
   messageForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const content = messageInput.value;
@@ -60,14 +48,12 @@ document.addEventListener('DOMContentLoaded', function() {
     socket.emit('send_message', { content: content, is_location: false });
     messageInput.value = '';
   });
-
   map.on('click', function(e) {
     pendingLocation = e.latlng;
     locationPopup.querySelector('p').textContent = "Deseja enviar esta localização?";
     locationPopup.classList.add('show');
     locationPopup.style.display = 'block';
   });
-
   popupYes.addEventListener('click', function() {
     if (pendingLocation) {
       socket.emit('send_message', { is_location: true, latitude: pendingLocation.lat, longitude: pendingLocation.lng });
@@ -76,14 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
     }
   });
-
   popupNo.addEventListener('click', function() {
     pendingLocation = null;
     locationPopup.classList.remove('show');
     setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
   });
-
-  // Atualiza a lista de usuários apenas quando houver mudanças
   setInterval(function() {
     fetch('/get_users')
       .then(response => response.json())
@@ -101,8 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
   }, 5000);
-
-  // Evento para limpar as mensagens
   if (clearMessagesBtn) {
     clearMessagesBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -120,8 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-
-// Função global para atualizar a visualização do mapa via hyperlink
 function setMapView(lat, lng) {
   window.map.setView([lat, lng], 18);
   return false;

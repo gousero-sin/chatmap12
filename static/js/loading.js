@@ -1,3 +1,4 @@
+// static/js/loading.js
 function showLoading(text = "Carregando...") {
   const container = document.getElementById('loading-container');
   if (container) {
@@ -5,7 +6,6 @@ function showLoading(text = "Carregando...") {
     container.style.display = 'flex';
   }
 }
-
 function hideLoading() {
   const container = document.getElementById('loading-container');
   if (container) {
