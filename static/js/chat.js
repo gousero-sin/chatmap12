@@ -2,7 +2,10 @@
 document.addEventListener('DOMContentLoaded', function() {
   if (document.getElementById('message-form')) {
     showLoading("Carregando...");
-    setTimeout(function() { hideLoading(); }, 6000);
+    setTimeout(function() {
+      hideLoading();
+      loadMessages();
+    }, 6000);
   }
   const messageForm = document.getElementById('message-form');
   const messageInput = document.getElementById('message-input');
@@ -13,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const popupYes = document.getElementById('popup-yes');
   const popupNo = document.getElementById('popup-no');
   const clearMessagesBtn = document.getElementById('clear-messages');
+  const darkModeSwitch = document.getElementById('dark-mode-switch');
   let pendingLocation = null;
   let lastMessageId = 0;
   let currentUsers = [];
@@ -25,9 +29,58 @@ document.addEventListener('DOMContentLoaded', function() {
   const socket = io();
   const map = L.map('map').setView([0, 0], 2);
   window.map = map;
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  let tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
+
+  // Dark mode toggle: update map tiles as well
+  if (darkModeSwitch) {
+    darkModeSwitch.addEventListener('change', function() {
+      if (darkModeSwitch.checked) {
+        document.body.classList.add('dark-mode');
+        map.eachLayer(function(layer) {
+          if (layer.options && layer.options.attribution && layer.options.attribution.indexOf('OpenStreetMap') > -1) {
+            map.removeLayer(layer);
+          }
+        });
+        tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+      } else {
+        document.body.classList.remove('dark-mode');
+        map.eachLayer(function(layer) {
+          if (layer.options && layer.options.attribution && layer.options.attribution.indexOf('CARTO') > -1) {
+            map.removeLayer(layer);
+          }
+        });
+        tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+      }
+    });
+  }
+
+  function loadMessages() {
+    fetch('/get_messages')
+      .then(response => response.json())
+      .then(data => {
+        messagesDiv.innerHTML = '';
+        data.messages.forEach(msg => {
+          const msgElem = document.createElement('div');
+          msgElem.classList.add('message');
+          if (msg.is_location) {
+            msgElem.innerHTML = `<strong>${msg.username}</strong> enviou uma <a href="#map" onclick="setMapView(${msg.latitude}, ${msg.longitude}); return false;">localização</a>.`;
+            L.marker([msg.latitude, msg.longitude], {icon: customIcon}).addTo(map)
+              .bindPopup(`${msg.username} está aqui.`);
+          } else {
+            msgElem.innerHTML = `<strong>${msg.username}:</strong> ${msg.content}`;
+          }
+          messagesDiv.appendChild(msgElem);
+          lastMessageId = msg.id;
+        });
+      });
+  }
+
   socket.on('new_message', function(data) {
     const msgElem = document.createElement('div');
     msgElem.classList.add('message');
@@ -41,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     messagesDiv.appendChild(msgElem);
     lastMessageId = data.id;
   });
+
   messageForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const content = messageInput.value;
@@ -48,12 +102,14 @@ document.addEventListener('DOMContentLoaded', function() {
     socket.emit('send_message', { content: content, is_location: false });
     messageInput.value = '';
   });
+
   map.on('click', function(e) {
     pendingLocation = e.latlng;
     locationPopup.querySelector('p').textContent = "Deseja enviar esta localização?";
     locationPopup.classList.add('show');
     locationPopup.style.display = 'block';
   });
+
   popupYes.addEventListener('click', function() {
     if (pendingLocation) {
       socket.emit('send_message', { is_location: true, latitude: pendingLocation.lat, longitude: pendingLocation.lng });
@@ -62,11 +118,13 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
     }
   });
+
   popupNo.addEventListener('click', function() {
     pendingLocation = null;
     locationPopup.classList.remove('show');
     setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
   });
+
   setInterval(function() {
     fetch('/get_users')
       .then(response => response.json())
@@ -84,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
   }, 5000);
+
   if (clearMessagesBtn) {
     clearMessagesBtn.addEventListener('click', function(e) {
       e.preventDefault();

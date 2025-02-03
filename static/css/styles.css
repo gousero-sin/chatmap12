@@ -19,6 +19,25 @@
   --loader-duration: 3s;
 }
 
+/* Dark Mode Advanced */
+body.dark-mode {
+  --bg-main: repeating-linear-gradient(
+    to bottom,
+    #222,
+    #222 2px,
+    #333,
+    #333 4px
+  );
+  --glass-bg: rgba(40, 40, 40, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --primary-color: #009688;
+  --secondary-color: #00796b;
+  --accent-color: #b39ddb;
+  color: #e0e0e0;
+  background: var(--bg-main);
+}
+
 body {
   font-family: 'Nunito', sans-serif;
   margin: 0;
@@ -60,7 +79,6 @@ body {
   box-shadow: 0 0 10px rgba(255,255,255,1);
   animation: spin var(--loader-duration) infinite ease-in-out;
 }
-/* Exemplo para os dois primeiros elementos – os demais devem ser gerados via loop (Sass ou template) */
 .wrapper i:nth-child(1) {
   transform: rotate(calc(1 / 62 * 720deg)) translate3d(80px, 0, 0);
   animation-delay: calc(1 * var(--loader-duration) / 62);
@@ -81,7 +99,7 @@ body {
   z-index: 10001;
 }
 
-/* Autenticação */
+/* Auth Pages */
 .auth-container {
   display: flex;
   justify-content: center;
@@ -172,19 +190,20 @@ button.aero:active {
 }
 
 /* Chat Layout using CSS Grid */
+/* Grid: Sidebar fixed; Map with fixed height; Mensagens flexíveis; Input fixo */
 .chat-container {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 200px 1fr 80px;
   grid-template-areas:
-    "sidebar header"
-    "sidebar main"
-    "sidebar footer";
+    "sidebar map"
+    "sidebar messages"
+    "sidebar input";
   height: 100vh;
-  background: var(--bg-main);
   gap: 5px;
   padding: 10px;
   box-sizing: border-box;
+  background: var(--bg-main);
 }
 .sidebar {
   grid-area: sidebar;
@@ -259,13 +278,14 @@ button.aero:active {
   transform: translateX(20px);
 }
 .chat-main {
-  grid-area: main;
+  grid-area: map;
   display: flex;
   flex-direction: column;
   gap: 5px;
   overflow: hidden;
 }
 #map-container {
+  grid-area: map;
   position: relative;
   background: var(--glass-bg);
   backdrop-filter: blur(8px);
@@ -273,8 +293,7 @@ button.aero:active {
   border-radius: 15px;
   box-shadow: var(--glass-shadow);
   overflow: hidden;
-  transition: box-shadow 0.3s;
-  flex: 1;
+  transition: box-shadow var(--transition-speed);
 }
 #map-container:hover {
   box-shadow: 0 8px 20px rgba(0,0,0,0.3);
@@ -283,40 +302,9 @@ button.aero:active {
   height: 100%;
   width: 100%;
 }
-#location-popup {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  box-shadow: var(--glass-shadow);
-  padding: 15px;
-  z-index: 1000;
-  opacity: 0;
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-}
-#location-popup.show {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-#location-popup p {
-  margin: 0 0 10px;
-  font-size: 14px;
-}
-#location-popup button {
-  margin: 0 5px;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-}
 .messages {
-  grid-area: header / header / footer / footer;
-  flex: 2;
+  grid-area: messages;
+  max-height: calc(100vh - 500px - 80px - 20px); /* 200px: altura do mapa, 80px: altura do input, 20px: margem adicional */
   overflow-y: auto;
   padding: 10px;
   background: var(--glass-bg);
@@ -334,13 +322,13 @@ button.aero:active {
   animation: animate__fadeIn 0.5s;
 }
 .chat-controls {
-  grid-area: footer;
+  grid-area: input;
   display: flex;
   justify-content: flex-end;
   margin-bottom: 5px;
 }
 #message-form {
-  grid-area: footer;
+  grid-area: input;
   display: flex;
   gap: 10px;
   padding: 10px;
@@ -351,11 +339,17 @@ button.aero:active {
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 25px;
-  transition: border 0.3s;
+  transition: border var(--transition-speed);
 }
 #message-input:focus {
   border-color: var(--primary-color);
   outline: none;
+}
+/* Dark mode: input styling */
+body.dark-mode #message-input {
+  background: #2b2b2b;
+  color: #e0e0e0;
+  border: 1px solid #555;
 }
 .btn-send {
   background: radial-gradient(circle at 50% 50%, var(--primary-color), var(--secondary-color));
@@ -370,7 +364,7 @@ button.aero:active {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 .btn-send:hover {
   transform: scale(1.1);
@@ -384,7 +378,7 @@ button.aero:active {
   color: #fff;
   border-radius: 8px;
   text-decoration: none;
-  transition: background 0.3s;
+  transition: background var(--transition-speed);
 }
 .btn-logout:hover {
   background: #d32f2f;
@@ -396,4 +390,41 @@ button.aero:active {
 @keyframes slideUp {
   from { transform: translateY(30px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+/* Adicione estas regras no final do seu arquivo styles.css para dark mode */
+
+/* Dark mode para mensagens: altere o fundo das mensagens para um tom mais escuro */
+body.dark-mode .message {
+  background: rgba(40, 40, 40, 0.8);
+  color: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Dark mode para o container do mapa: garanta que o fundo seja escuro */
+body.dark-mode #map-container {
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Caso haja uma "barra branca" acima do mapa, certifique-se de que não há margens ou backgrounds não tratados: */
+body.dark-mode .chat-container {
+  background: var(--bg-main);
+}
+
+/* Ajuste o fundo do input de mensagem em dark mode (já existe, mas reforçado) */
+body.dark-mode #message-input {
+  background: #2b2b2b;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+/* Dark mode: ajuste para que as fontes do popup e do botão de limpar mensagens fiquem brancas */
+body.dark-mode #location-popup p,
+body.dark-mode #location-popup button {
+  color: #e0e0e0 !important;
+}
+
+body.dark-mode #clear-messages,
+body.dark-mode #clear-messages * {
+  color: #e0e0e0 !important;
 }
