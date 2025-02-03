@@ -10,13 +10,6 @@
     #ffffff 2px,
     #ffffff 4px
   );
-  --dark-bg: repeating-linear-gradient(
-    to bottom,
-    #222,
-    #222 2px,
-    #333,
-    #333 4px
-  );
   --bottom-glow: radial-gradient(farthest-corner at bottom center, rgba(255,255,255,0.7), transparent);
 }
 
@@ -76,7 +69,6 @@ body {
   transform: rotate(calc(2 / 62 * 720deg)) translate3d(80px, 0, 0);
   animation-delay: calc(2 * 3s / 62);
 }
-/* ... (até i:nth-child(62)) ... */
 @keyframes spin {
   from { opacity: 0; }
   to { opacity: 0.6; transform: translate3d(-4px, -4px, 570px); }
@@ -102,8 +94,9 @@ body {
   flex-direction: column;
 }
 .auth-card {
-  background: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.75);
   backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
@@ -130,6 +123,8 @@ body {
   border-color: #00bcd4;
   outline: none;
 }
+
+/* Botões de Autenticação – Estilo Aero */
 button.aero {
   --button-color: oklch(75% 0.1 245);
   --button-background: oklch(from var(--button-color) l c h / 0.8);
@@ -148,7 +143,7 @@ button.aero {
   padding: 1ex 1em;
   position: relative;
   text-shadow: 0 2px 0.5em #0003;
-  transition: all 300ms;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 button.aero::after {
   content: "";
@@ -163,7 +158,8 @@ button.aero::after {
 }
 button.aero:hover,
 button.aero:focus {
-  box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 button.aero:active {
   box-shadow: 0 2px 4px rgba(0,0,0,0.4);
@@ -175,6 +171,10 @@ button.aero:active {
 .auth-link a {
   color: #00bcd4;
   text-decoration: none;
+  transition: color 0.3s;
+}
+.auth-link a:hover {
+  color: #00796b;
 }
 
 /* --------------------------- */
@@ -190,8 +190,9 @@ button.aero:active {
 }
 .sidebar {
   width: 240px;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
   padding: 15px;
   border-radius: 10px;
   box-shadow: 2px 0 12px rgba(0,0,0,0.2);
@@ -266,9 +267,11 @@ button.aero:active {
 }
 #map-container {
   position: relative;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  backdrop-filter: blur(8px);
   overflow: hidden;
   transition: box-shadow 0.3s;
   flex: 1;
@@ -285,8 +288,9 @@ button.aero:active {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0);
-  background: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.85);
   backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   padding: 15px;
@@ -314,8 +318,9 @@ button.aero:active {
   flex: 2;
   overflow-y: auto;
   padding: 10px;
-  background: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.75);
   backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 10px;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
@@ -325,6 +330,8 @@ button.aero:active {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  /* Utilize Animate.css para fadeIn em cada mensagem */
+  animation: animate__fadeIn 0.5s;
 }
 #message-form {
   display: flex;
@@ -375,6 +382,8 @@ button.aero:active {
 .btn-logout:hover {
   background: #d32f2f;
 }
+
+/* Animações personalizadas para fadeIn e slideUp */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

@@ -6,21 +6,22 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <!-- Font Awesome para ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Animate.css para animações -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="animate__animated animate__fadeIn">
   <!-- Componente de Loading (inicialmente oculto) -->
   <div id="loading-container" class="loading-container" style="display: none;">
     <div class="wrapper">
-      <!-- Para produção, gere 62 elementos <i> via loop ou pré-processador.
-           Aqui, exemplificamos com alguns elementos: -->
+      <!-- Para produção, gere 62 elementos <i> via loop ou pré-processador. Exemplo: -->
       <i></i>
       <i></i>
       <i></i>
       <i></i>
-      <!-- ... (até 62) ... -->
+      <!-- ... até 62 elementos ... -->
     </div>
     <div class="loading-text">Carregando...</div>
   </div>
