@@ -6,7 +6,6 @@ from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
 from datetime import datetime, timedelta
 import os
-import json
 from models import db, User, Message
 
 app = Flask(__name__)
@@ -33,16 +32,6 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
     return redirect(url_for('login'))
-
-@app.route('/clear_messages', methods=['POST'])
-@login_required
-def clear_messages():
-    try:
-        Message.query.delete()
-        db.session.commit()
-        return jsonify({'status': 'sucesso'})
-    except Exception as e:
-        return jsonify({'status': 'erro', 'message': str(e)}), 500
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -113,6 +102,48 @@ def get_users():
     users_list = [user.username for user in users]
     return jsonify({'users': users_list})
 
+@app.route('/upload_file', methods=['POST'])
+@login_required
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'status': 'error', 'message': 'Nenhum arquivo enviado.'})
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'status': 'error', 'message': 'Arquivo vazio.'})
+    upload_path = os.path.join(BASE_DIR, 'static', 'uploads')
+    if not os.path.exists(upload_path):
+        os.makedirs(upload_path)
+    file.save(os.path.join(upload_path, file.filename))
+    return jsonify({'status': 'success'})
+
+@app.route('/upload_audio', methods=['POST'])
+@login_required
+def upload_audio():
+    if 'audio' not in request.files:
+        return jsonify({'status': 'error', 'message': 'Nenhum áudio enviado.'})
+    audio = request.files['audio']
+    if audio.filename == '':
+        return jsonify({'status': 'error', 'message': 'Arquivo de áudio vazio.'})
+    upload_path = os.path.join(BASE_DIR, 'static', 'uploads')
+    if not os.path.exists(upload_path):
+        os.makedirs(upload_path)
+    audio.save(os.path.join(upload_path, audio.filename))
+    return jsonify({'status': 'success'})
+
+
+@app.route('/clear_messages', methods=['POST'])
+@login_required
+def clear_messages():
+    try:
+        Message.query.delete()
+        db.session.commit()
+        # Emite o evento 'clear_chat' para todos os clientes conectados
+        socketio.emit('clear_chat', {})
+        return jsonify({'status': 'sucesso'})
+    except Exception as e:
+        return jsonify({'status': 'erro', 'message': str(e)}), 500
+
+    
 @app.before_request
 def update_last_active():
     if current_user.is_authenticated:

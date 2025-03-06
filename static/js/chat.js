@@ -1,4 +1,3 @@
-// static/js/chat.js
 document.addEventListener('DOMContentLoaded', function() {
   if (document.getElementById('message-form')) {
     showLoading("Carregando...");
@@ -7,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
       loadMessages();
     }, 6000);
   }
+
+  // Elementos do DOM
   const messageForm = document.getElementById('message-form');
   const messageInput = document.getElementById('message-input');
   const messagesDiv = document.getElementById('messages');
@@ -19,22 +20,35 @@ document.addEventListener('DOMContentLoaded', function() {
   const darkModeSwitch = document.getElementById('dark-mode-switch');
   const menuBtn = document.getElementById('menu-btn');
   const menuPopup = document.getElementById('menu-popup');
+
   let pendingLocation = null;
   let lastMessageId = 0;
   let currentUsers = [];
+
+  // Função para auto-scroll
+  function autoScroll() {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // Ícone customizado para os marcadores do mapa
   const customIcon = L.divIcon({
     html: '<i class="fas fa-map-marker-alt" style="color:#d32f2f;font-size:28px;"></i>',
     className: 'custom-div-icon',
     iconSize: [30, 42],
     iconAnchor: [15, 42]
   });
+
+  // Inicializa Socket.IO
   const socket = io();
+
+  // Inicializa o mapa e define o tile layer padrão
   const map = L.map('map').setView([0, 0], 2);
   window.map = map;
   let tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
+  // Atualiza o tile layer do mapa ao trocar o dark mode
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener('change', function() {
       if (darkModeSwitch.checked) {
@@ -61,14 +75,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Popup do menu de anexos/áudio
   if (menuBtn && menuPopup) {
     menuBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      if (menuPopup.style.display === 'none' || menuPopup.style.display === '') {
-        menuPopup.style.display = 'block';
-      } else {
-        menuPopup.style.display = 'none';
-      }
+      menuPopup.style.display = (menuPopup.style.display === 'block') ? 'none' : 'block';
     });
     document.addEventListener('click', function(e) {
       if (!menuPopup.contains(e.target) && e.target !== menuBtn) {
@@ -77,6 +88,86 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Criação de um input file oculto para anexar arquivos
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+
+  const fileUploadBtn = menuPopup.querySelector('button.menu-option:nth-child(1)');
+  if (fileUploadBtn) {
+    fileUploadBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      fileInput.click();
+    });
+  }
+  fileInput.addEventListener('change', function(e) {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const fileURL = URL.createObjectURL(file);
+    const msg = {
+      username: currentUserName(),
+      content: `<a href="${fileURL}" target="_blank">Arquivo: ${file.name}</a>`,
+      is_location: false
+    };
+    socket.emit('send_message', msg);
+  });
+
+  // Gravação de áudio com toggle para iniciar/parar
+  let isRecording = false;
+  let mediaRecorder;
+  let audioChunks = [];
+  const audioRecordBtn = menuPopup.querySelector('button.menu-option:nth-child(2)');
+  if (audioRecordBtn) {
+    audioRecordBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (!isRecording) {
+        startAudioRecording();
+        audioRecordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar Gravação';
+      } else {
+        stopAudioRecording();
+        audioRecordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar Áudio';
+      }
+    });
+  }
+  function startAudioRecording() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      alert('Gravação de áudio não é suportada nesse navegador.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        isRecording = true;
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.start();
+        mediaRecorder.addEventListener('dataavailable', event => {
+          audioChunks.push(event.data);
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao acessar microfone:', err);
+        alert('Não foi possível acessar o microfone.');
+      });
+  }
+  function stopAudioRecording() {
+    if (mediaRecorder && isRecording) {
+      isRecording = false;
+      mediaRecorder.stop();
+      mediaRecorder.addEventListener('stop', () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioURL = URL.createObjectURL(audioBlob);
+        const msg = {
+          username: currentUserName(),
+          content: `<audio controls src="${audioURL}"></audio>`,
+          is_location: false
+        };
+        socket.emit('send_message', msg);
+      });
+    }
+  }
+
+  // Carrega as mensagens do servidor e realiza auto-scroll
   function loadMessages() {
     fetch('/get_messages')
       .then(response => response.json())
@@ -87,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
           msgElem.classList.add('message');
           if (msg.is_location) {
             msgElem.innerHTML = `<strong>${msg.username}</strong> enviou uma <a href="#map" onclick="setMapView(${msg.latitude}, ${msg.longitude}); return false;">localização</a>.`;
-            L.marker([msg.latitude, msg.longitude], {icon: customIcon}).addTo(map)
+            L.marker([msg.latitude, msg.longitude], { icon: customIcon }).addTo(map)
               .bindPopup(`${msg.username} está aqui.`);
           } else {
             msgElem.innerHTML = `<strong>${msg.username}:</strong> ${msg.content}`;
@@ -95,21 +186,24 @@ document.addEventListener('DOMContentLoaded', function() {
           messagesDiv.appendChild(msgElem);
           lastMessageId = msg.id;
         });
+        autoScroll();
       });
   }
 
+  // Recebe novas mensagens via Socket.IO e realiza auto-scroll
   socket.on('new_message', function(data) {
     const msgElem = document.createElement('div');
     msgElem.classList.add('message');
     if (data.is_location) {
       msgElem.innerHTML = `<strong>${data.username}</strong> enviou uma <a href="#map" onclick="setMapView(${data.latitude}, ${data.longitude}); return false;">localização</a>.`;
-      L.marker([data.latitude, data.longitude], {icon: customIcon}).addTo(map)
+      L.marker([data.latitude, data.longitude], { icon: customIcon }).addTo(map)
         .bindPopup(`${data.username} está aqui.`);
     } else {
       msgElem.innerHTML = `<strong>${data.username}:</strong> ${data.content}`;
     }
     messagesDiv.appendChild(msgElem);
     lastMessageId = data.id;
+    autoScroll();
   });
 
   messageForm.addEventListener('submit', function(e) {
@@ -118,8 +212,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (content.trim() === '') return;
     socket.emit('send_message', { content: content, is_location: false });
     messageInput.value = '';
+    autoScroll();
   });
 
+  // Envia localização ao clicar no mapa
   map.on('click', function(e) {
     pendingLocation = e.latlng;
     locationPopup.querySelector('p').textContent = "Deseja enviar esta localização?";
@@ -142,11 +238,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
   });
 
+  // Atualiza a lista de usuários online periodicamente
   setInterval(function() {
     fetch('/get_users')
       .then(response => response.json())
       .then(data => {
-        let newUsers = data.users;
+        const newUsers = data.users;
         if (JSON.stringify(newUsers) !== JSON.stringify(currentUsers)) {
           currentUsers = newUsers;
           usersList.innerHTML = '';
@@ -169,14 +266,67 @@ document.addEventListener('DOMContentLoaded', function() {
           .then(data => {
             if (data.status === 'sucesso') {
               messagesDiv.innerHTML = '';
+              lastMessageId = 0;
             } else {
               alert("Erro ao limpar mensagens: " + data.message);
             }
+          })
+          .catch(err => {
+            console.error(err);
+            alert("Erro ao limpar mensagens.");
           });
       }
     });
   }
+
+  // Emite "typing" enquanto o usuário digita
+  let typingTimer;
+  messageInput.addEventListener('keyup', function() {
+    socket.emit('typing', { username: currentUserName() });
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+      socket.emit('stop_typing', { username: currentUserName() });
+    }, 1000);
+  });
+
+  socket.on('typing', function(data) {
+    showTypingIndicator(data.username);
+  });
+  
+  socket.on('stop_typing', function(data) {
+    hideTypingIndicator(data.username);
+  });
+  
+  function showTypingIndicator(username) {
+    let indicator = document.getElementById('typing-indicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.id = 'typing-indicator';
+      indicator.style.fontSize = '12px';
+      indicator.style.fontStyle = 'italic';
+      indicator.style.marginTop = '5px';
+      messagesDiv.appendChild(indicator);
+    }
+    indicator.innerText = `${username} está digitando...`;
+    setTimeout(() => {
+      if (indicator.innerText === `${username} está digitando...`) {
+        indicator.innerText = '';
+      }
+    }, 2000);
+  }
+  
+  function hideTypingIndicator(username) {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator && indicator.innerText.includes(username)) {
+      indicator.innerText = '';
+    }
+  }
+  
+  function currentUserName() {
+    return window.currentUsername || "Você";
+  }
 });
+  
 function setMapView(lat, lng) {
   window.map.setView([lat, lng], 18);
   return false;
