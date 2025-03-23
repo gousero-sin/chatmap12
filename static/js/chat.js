@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   if (document.getElementById('message-form')) {
-    showLoading("Carregando...");
+    showLoading();
     setTimeout(function() {
       hideLoading();
       loadMessages();
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const darkModeSwitch = document.getElementById('dark-mode-switch');
   const menuBtn = document.getElementById('menu-btn');
   const menuPopup = document.getElementById('menu-popup');
-  
+
   let pendingLocation = null;
   let lastMessageId = 0;
   let currentUsers = [];
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return window.currentUsername || "Você";
   }
 
-  // Ícone customizado para os marcadores do mapa
+  // Ícone customizado para marcadores no mapa
   const customIcon = L.divIcon({
     html: '<i class="fas fa-map-marker-alt" style="color:#d32f2f;font-size:28px;"></i>',
     className: 'custom-div-icon',
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Dark mode toggle: altera também os tiles do mapa
+  // Dark mode toggle (muda o tile do mapa)
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener('change', function() {
       if (darkModeSwitch.checked) {
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Criação de um input file oculto para anexar arquivos
+  // Cria um input file oculto para anexar arquivos
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.style.display = 'none';
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     socket.emit('send_message', msg);
   });
 
-  // Tratamento do botão "Gravar Áudio" com toggle e animação de pulse
+  // Tratamento do botão "Gravar Áudio"
   const audioRecordBtn = menuPopup.querySelector('button.menu-option:nth-child(2)');
   if (audioRecordBtn) {
     audioRecordBtn.addEventListener('click', function(e) {
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Carrega mensagens do servidor e faz auto-scroll
+  // Carrega as mensagens do servidor e faz auto-scroll
   function loadMessages() {
     fetch('/get_messages')
       .then(response => response.json())
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
   
-  // Recebe novas mensagens via Socket.IO e auto-scroll
+  // Recebe novas mensagens via Socket.IO e faz auto-scroll
   socket.on('new_message', function(data) {
     const msgElem = document.createElement('div');
     msgElem.classList.add('message');
@@ -223,7 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
     lastMessageId = data.id;
     autoScroll();
   });
-  
+
+  // Envio de mensagens de texto
   messageForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const content = messageInput.value;
@@ -256,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
   });
   
-  // Atualiza periodicamente a lista de usuários online
+  // Atualiza periodicamente a lista de usuários
   setInterval(function() {
     fetch('/get_users')
       .then(response => response.json())
@@ -266,15 +267,22 @@ document.addEventListener('DOMContentLoaded', function() {
           currentUsers = newUsers;
           usersList.innerHTML = '';
           newUsers.forEach(user => {
+            // Agora link para /profile/<username>
             const li = document.createElement('li');
             li.classList.add('user-item');
-            li.innerHTML = `<i class="fas fa-user-circle"></i><span>${user}</span>`;
+            li.innerHTML = `
+              <i class="fas fa-user-circle"></i>
+              <a href="/profile/${user}" style="color: inherit; text-decoration: none;">
+                <span>${user}</span>
+              </a>
+            `;
             usersList.appendChild(li);
           });
         }
       });
   }, 5000);
   
+  // Botão de limpar mensagens
   if (clearMessagesBtn) {
     clearMessagesBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -339,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
-  
+
 function setMapView(lat, lng) {
   window.map.setView([lat, lng], 18);
   return false;

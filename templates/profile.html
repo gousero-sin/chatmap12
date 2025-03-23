@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Perfil - {{ user.username }}{% endblock %}
+{% block content %}
+<div class="profile-container">
+  <div class="profile-card">
+    <div class="profile-image">
+      {% if user.profile_image %}
+        <img src="{{ url_for('static', filename=user.profile_image) }}" alt="Profile Image">
+      {% else %}
+        <img src="{{ url_for('static', filename='img/default_profile.png') }}" alt="Sem Imagem">
+      {% endif %}
+    </div>
+    <h2>{{ user.username }}</h2>
+
+    <p class="bio-text">
+      {% if user.bio %}
+        {{ user.bio }}
+      {% else %}
+        <em>Este usuário ainda não adicionou uma bio...</em>
+      {% endif %}
+    </p>
+
+    {% if own_profile %}
+    <button class="aero edit-btn" onclick="toggleEditForm()">Editar Perfil</button>
+    <form id="edit-form"
+          action="{{ url_for('edit_profile', username=user.username) }}"
+          method="POST"
+          enctype="multipart/form-data"
+          style="display:none; margin-top:20px;">
+      <div class="form-group">
+        <label for="profile_image">Nova Imagem de Perfil:</label>
+        <input type="file" name="profile_image" id="profile_image" accept="image/*">
+      </div>
+      <div class="form-group">
+        <label for="bio">Bio:</label>
+        <textarea name="bio" id="bio" rows="4" placeholder="Fale um pouco sobre você...">{{ user.bio }}</textarea>
+      </div>
+      <button type="submit" class="aero" style="margin-top:10px;">Salvar</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Footer com toggle de Dark Mode e botão Home -->
+  <div class="profile-footer">
+    <div class="dark-toggle">
+      <label for="dark-mode-profile">Dark Mode</label>
+      <input type="checkbox" id="dark-mode-profile">
+    </div>
+    <button class="aero home-btn" onclick="window.location='{{ url_for('chat') }}'">
+      🏠
+    </button>
+  </div>
+</div>
+
+<script>
+function toggleEditForm() {
+  const editForm = document.getElementById('edit-form');
+  editForm.style.display = (editForm.style.display === 'none' || editForm.style.display === '') ? 'block' : 'none';
+}
+
+// Comportamento do Dark Mode local
+document.addEventListener('DOMContentLoaded', () => {
+  const darkModeCheckbox = document.getElementById('dark-mode-profile');
+  if (darkModeCheckbox) {
+    darkModeCheckbox.addEventListener('change', () => {
+      if (darkModeCheckbox.checked) {
+        document.body.classList.add('dark-mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

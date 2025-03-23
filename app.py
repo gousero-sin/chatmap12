@@ -1,8 +1,11 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+
+from mimetypes import guess_type
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
+from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit
 from datetime import datetime, timedelta
 import os
@@ -32,6 +35,59 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
     return redirect(url_for('login'))
+
+
+#user
+@app.route('/profile/<username>', methods=['GET'])
+@login_required
+def profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    # Verifica se é o próprio usuário logado
+    is_own_profile = (current_user.username == user.username)
+    return render_template('profile.html', user=user, own_profile=is_own_profile)
+
+
+@app.route('/profile/<username>/edit', methods=['POST'])
+@login_required
+def edit_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+
+    # Garante que só o próprio usuário edite
+    if current_user.username != user.username:
+        return redirect(url_for('profile', username=username))
+
+    # Salva a nova bio, se fornecida
+    new_bio = request.form.get('bio', '').strip()
+    if new_bio:
+        user.bio = new_bio
+
+    # Verifica se foi enviado um arquivo de imagem
+    file = request.files.get('profile_image')
+    if file and file.filename:
+        mime_type, _ = guess_type(file.filename)
+        # Confirma se o mimetype começa com 'image/'
+        if mime_type and mime_type.startswith('image/'):
+            filename = secure_filename(file.filename)
+            # Garante que a pasta exista
+            upload_path = os.path.join(BASE_DIR, 'static', 'uploads', 'profiles')
+            if not os.path.exists(upload_path):
+                os.makedirs(upload_path)
+
+            # Salva o arquivo de imagem no disco
+            full_path = os.path.join(upload_path, filename)
+            file.save(full_path)
+
+            # Atualiza o campo profile_image no banco (ex.: "uploads/profiles/<arquivo>")
+            user.profile_image = f'uploads/profiles/{filename}'
+        else:
+            flash('Somente arquivos de imagem são permitidos.', 'error')
+            return redirect(url_for('profile', username=username))
+
+    # Faz o commit das alterações no banco
+    db.session.commit()
+
+    flash('Perfil atualizado com sucesso!', 'success')
+    return redirect(url_for('profile', username=username))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -77,22 +133,6 @@ def logout():
 def chat():
     return render_template('chat.html')
 
-@app.route('/get_messages')
-@login_required
-def get_messages():
-    messages_query = Message.query.order_by(Message.timestamp.asc()).limit(50)
-    messages = []
-    for msg in messages_query:
-        messages.append({
-            'id': msg.id,
-            'username': msg.username,
-            'content': msg.content,
-            'timestamp': msg.timestamp.strftime('%H:%M:%S'),
-            'is_location': msg.is_location,
-            'latitude': msg.latitude,
-            'longitude': msg.longitude
-        })
-    return jsonify({'messages': messages})
 
 @app.route('/get_users')
 @login_required
@@ -130,6 +170,45 @@ def upload_audio():
     audio.save(os.path.join(upload_path, audio.filename))
     return jsonify({'status': 'success'})
 
+#loading
+
+@app.route('/get_loading_videos')
+def get_loading_videos():
+    loading_dir = os.path.join(BASE_DIR, 'static', 'videos', 'loading')
+    try:
+        files = os.listdir(loading_dir)
+        # Filtra apenas os arquivos com extensão .mp4
+        videos = [f for f in files if f.lower().endswith('.mp4')]
+        return jsonify({'videos': videos})
+    except Exception as e:
+        return jsonify({'videos': []})
+
+
+
+@app.before_request
+def update_last_active():
+    if current_user.is_authenticated:
+        current_user.last_active = datetime.utcnow()
+        db.session.commit()
+
+#messages
+
+@app.route('/get_messages')
+@login_required
+def get_messages():
+    messages_query = Message.query.order_by(Message.timestamp.asc()).limit(50)
+    messages = []
+    for msg in messages_query:
+        messages.append({
+            'id': msg.id,
+            'username': msg.username,
+            'content': msg.content,
+            'timestamp': msg.timestamp.strftime('%H:%M:%S'),
+            'is_location': msg.is_location,
+            'latitude': msg.latitude,
+            'longitude': msg.longitude
+        })
+    return jsonify({'messages': messages})
 
 @app.route('/clear_messages', methods=['POST'])
 @login_required
@@ -142,23 +221,6 @@ def clear_messages():
         return jsonify({'status': 'sucesso'})
     except Exception as e:
         return jsonify({'status': 'erro', 'message': str(e)}), 500
-
-@app.route('/get_loading_videos')
-def get_loading_videos():
-    loading_dir = os.path.join(BASE_DIR, 'static', 'videos', 'loading')
-    try:
-        files = os.listdir(loading_dir)
-        # Filtra apenas os arquivos com extensão .mp4
-        videos = [f for f in files if f.lower().endswith('.mp4')]
-        return jsonify({'videos': videos})
-    except Exception as e:
-        return jsonify({'videos': []})
-   
-@app.before_request
-def update_last_active():
-    if current_user.is_authenticated:
-        current_user.last_active = datetime.utcnow()
-        db.session.commit()
 
 @socketio.on('send_message')
 def handle_send_message(data):

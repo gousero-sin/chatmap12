@@ -434,6 +434,263 @@ body.dark-mode .message {
   box-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 60px);
+  padding: 20px;
+}
+
+.profile-card {
+  width: 400px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  box-shadow: var(--glass-shadow);
+  padding: 30px;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.profile-image img {
+  width: 150px;
+  height: 150px;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  margin-bottom: 15px;
+}
+
+.bio-text {
+  font-style: italic;
+  margin: 10px 0;
+  color: #555; /* Ajustar conforme dark mode */
+}
+
+/* Dark mode overrides */
+body.dark-mode .profile-card {
+  background: rgba(40,40,40,0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 40px; /* mais espaçado */
+}
+
+.profile-card {
+  width: 500px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  box-shadow: var(--glass-shadow);
+  padding: 30px 40px; /* espaçamento lateral maior */
+  margin-top: 60px;
+  text-align: center;
+}
+
+.profile-image img {
+  width: 150px;
+  height: 150px;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  margin-bottom: 15px;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: var(--accent-color);
+}
+
+.bio-text {
+  margin: 15px 0;
+  font-style: italic;
+  color: #555;
+}
+
+.edit-btn {
+  margin-top: 15px;
+}
+
+#edit-form .form-group {
+  margin-bottom: 15px;
+  text-align: left; /* Alinha rótulos à esquerda */
+}
+
+#edit-form label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+/* Textarea customizado */
+#edit-form textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  resize: none; /* Impede redimensionamento manual */
+  transition: border 0.3s;
+}
+
+#edit-form textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+/* Ajustes no dark mode */
+body.dark-mode .profile-card {
+  background: rgba(40, 40, 40, 0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+body.dark-mode .bio-text {
+  color: #ccc;
+}
+
+body.dark-mode #edit-form label {
+  color: #ccc;
+}
+
+body.dark-mode #edit-form textarea {
+  background: #2b2b2b;
+  color: #eee;
+  border: 1px solid #555;
+}
+
+.profile-container {
+  position: relative; /* Para posicionar o .profile-footer dentro */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 13px;
+}
+
+/* Cartão de perfil no meio */
+.profile-card {
+  width: 500px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  box-shadow: var(--glass-shadow);
+  padding: 30px 40px;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.profile-image img {
+  width: 150px;
+  height: 150px;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  margin-bottom: 15px;
+}
+
+.bio-text {
+  margin: 15px 0;
+  font-style: italic;
+  color: #555;
+}
+
+.edit-btn {
+  margin-top: 15px;
+}
+
+/* Footer fixado na parte inferior direita */
+.profile-footer {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.dark-toggle label {
+  color: var(--accent-color);
+  font-size: 14px;
+}
+
+.dark-toggle input[type="checkbox"] {
+  -webkit-appearance: none;
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  outline: none;
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+.dark-toggle input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  top: 1px;
+  left: 1px;
+  transition: transform 0.3s;
+}
+.dark-toggle input[type="checkbox"]:checked {
+  background: var(--primary-color);
+}
+.dark-toggle input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+/* Botão Home */
+.home-btn {
+  width: 50px;
+  height: 50px;
+  font-size: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajustes para o Dark Mode */
+body.dark-mode .profile-card {
+  background: rgba(40, 40, 40, 0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+body.dark-mode .bio-text {
+  color: #ccc;
+}
+
+body.dark-mode .dark-toggle label {
+  color: #eee;
+}
+
+body.dark-mode .aero {
+  color: #fff; /* Botões ficam brancos */
+}
+
 
 @keyframes fadeIn {
   from { opacity: 0; }
