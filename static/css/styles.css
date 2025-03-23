@@ -50,56 +50,6 @@ body {
   overflow: hidden;
 }
 
-/* Loading Screen */
-.loading-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #3e6fa3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-}
-.wrapper {
-  position: relative;
-  width: 0;
-  height: 0;
-  perspective: 500px;
-}
-.wrapper i {
-  display: block;
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  opacity: 0;
-  background: rgba(255,255,255,0.5);
-  box-shadow: 0 0 10px rgba(255,255,255,1);
-  animation: spin var(--loader-duration) infinite ease-in-out;
-}
-.wrapper i:nth-child(1) {
-  transform: rotate(calc(1 / 62 * 720deg)) translate3d(80px, 0, 0);
-  animation-delay: calc(1 * var(--loader-duration) / 62);
-}
-.wrapper i:nth-child(2) {
-  transform: rotate(calc(2 / 62 * 720deg)) translate3d(80px, 0, 0);
-  animation-delay: calc(2 * var(--loader-duration) / 62);
-}
-@keyframes spin {
-  from { opacity: 0; }
-  to { opacity: 0.6; transform: translate3d(-4px, -4px, 570px); }
-}
-.loading-text {
-  position: absolute;
-  color: #fff;
-  font-size: 18px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  z-index: 10001;
-}
-
 /* Auth Pages */
 .auth-container {
   display: flex;

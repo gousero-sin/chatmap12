@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 6000);
   }
 
-  // Elementos do DOM
   const messageForm = document.getElementById('message-form');
   const messageInput = document.getElementById('message-input');
   const messagesDiv = document.getElementById('messages');
@@ -20,14 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
   const darkModeSwitch = document.getElementById('dark-mode-switch');
   const menuBtn = document.getElementById('menu-btn');
   const menuPopup = document.getElementById('menu-popup');
-
+  
   let pendingLocation = null;
   let lastMessageId = 0;
   let currentUsers = [];
+  let isRecording = false;
+  let mediaRecorder;
+  let audioChunks = [];
+  let typingTimer;
 
-  // Função para auto-scroll
+  // Função de auto-scroll
   function autoScroll() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // Função auxiliar para obter o nome do usuário atual
+  function currentUserName() {
+    return window.currentUsername || "Você";
   }
 
   // Ícone customizado para os marcadores do mapa
@@ -38,17 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
     iconAnchor: [15, 42]
   });
 
-  // Inicializa Socket.IO
+  // Inicializa Socket.IO e mapa
   const socket = io();
-
-  // Inicializa o mapa e define o tile layer padrão
   const map = L.map('map').setView([0, 0], 2);
   window.map = map;
   let tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Atualiza o tile layer do mapa ao trocar o dark mode
+  // Dark mode toggle: altera também os tiles do mapa
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener('change', function() {
       if (darkModeSwitch.checked) {
@@ -75,15 +81,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Popup do menu de anexos/áudio
+  // Popup do menu de anexos/áudio com animações
   if (menuBtn && menuPopup) {
     menuBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      menuPopup.style.display = (menuPopup.style.display === 'block') ? 'none' : 'block';
+      if (menuPopup.style.display === 'none' || menuPopup.style.display === '') {
+        menuPopup.style.display = 'block';
+        menuPopup.classList.remove('animate__bounceOutUp');
+        menuPopup.classList.add('animate__animated', 'animate__bounceInDown');
+      } else {
+        menuPopup.classList.remove('animate__bounceInDown');
+        menuPopup.classList.add('animate__animated', 'animate__bounceOutUp');
+        setTimeout(() => { menuPopup.style.display = 'none'; }, 800);
+      }
     });
     document.addEventListener('click', function(e) {
       if (!menuPopup.contains(e.target) && e.target !== menuBtn) {
-        menuPopup.style.display = 'none';
+        menuPopup.classList.remove('animate__bounceInDown');
+        menuPopup.classList.add('animate__animated', 'animate__bounceOutUp');
+        setTimeout(() => { menuPopup.style.display = 'none'; }, 800);
       }
     });
   }
@@ -94,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
   fileInput.style.display = 'none';
   document.body.appendChild(fileInput);
 
+  // Botão "Anexar Arquivo"
   const fileUploadBtn = menuPopup.querySelector('button.menu-option:nth-child(1)');
   if (fileUploadBtn) {
     fileUploadBtn.addEventListener('click', function(e) {
@@ -113,10 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     socket.emit('send_message', msg);
   });
 
-  // Gravação de áudio com toggle para iniciar/parar
-  let isRecording = false;
-  let mediaRecorder;
-  let audioChunks = [];
+  // Tratamento do botão "Gravar Áudio" com toggle e animação de pulse
   const audioRecordBtn = menuPopup.querySelector('button.menu-option:nth-child(2)');
   if (audioRecordBtn) {
     audioRecordBtn.addEventListener('click', function(e) {
@@ -124,12 +138,15 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!isRecording) {
         startAudioRecording();
         audioRecordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar Gravação';
+        audioRecordBtn.classList.add('animate__animated', 'animate__pulse');
       } else {
         stopAudioRecording();
         audioRecordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar Áudio';
+        audioRecordBtn.classList.add('animate__animated', 'animate__pulse');
       }
     });
   }
+  
   function startAudioRecording() {
     if (!navigator.mediaDevices || !window.MediaRecorder) {
       alert('Gravação de áudio não é suportada nesse navegador.');
@@ -150,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Não foi possível acessar o microfone.');
       });
   }
+  
   function stopAudioRecording() {
     if (mediaRecorder && isRecording) {
       isRecording = false;
@@ -167,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Carrega as mensagens do servidor e realiza auto-scroll
+  // Carrega mensagens do servidor e faz auto-scroll
   function loadMessages() {
     fetch('/get_messages')
       .then(response => response.json())
@@ -189,8 +207,8 @@ document.addEventListener('DOMContentLoaded', function() {
         autoScroll();
       });
   }
-
-  // Recebe novas mensagens via Socket.IO e realiza auto-scroll
+  
+  // Recebe novas mensagens via Socket.IO e auto-scroll
   socket.on('new_message', function(data) {
     const msgElem = document.createElement('div');
     msgElem.classList.add('message');
@@ -205,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     lastMessageId = data.id;
     autoScroll();
   });
-
+  
   messageForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const content = messageInput.value;
@@ -214,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
     messageInput.value = '';
     autoScroll();
   });
-
+  
   // Envia localização ao clicar no mapa
   map.on('click', function(e) {
     pendingLocation = e.latlng;
@@ -222,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     locationPopup.classList.add('show');
     locationPopup.style.display = 'block';
   });
-
+  
   popupYes.addEventListener('click', function() {
     if (pendingLocation) {
       socket.emit('send_message', { is_location: true, latitude: pendingLocation.lat, longitude: pendingLocation.lng });
@@ -231,14 +249,14 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
     }
   });
-
+  
   popupNo.addEventListener('click', function() {
     pendingLocation = null;
     locationPopup.classList.remove('show');
     setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
   });
-
-  // Atualiza a lista de usuários online periodicamente
+  
+  // Atualiza periodicamente a lista de usuários online
   setInterval(function() {
     fetch('/get_users')
       .then(response => response.json())
@@ -256,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
   }, 5000);
-
+  
   if (clearMessagesBtn) {
     clearMessagesBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -278,9 +296,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-
-  // Emite "typing" enquanto o usuário digita
-  let typingTimer;
+  
+  // Indicador de digitação
   messageInput.addEventListener('keyup', function() {
     socket.emit('typing', { username: currentUserName() });
     clearTimeout(typingTimer);
@@ -288,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
       socket.emit('stop_typing', { username: currentUserName() });
     }, 1000);
   });
-
+  
   socket.on('typing', function(data) {
     showTypingIndicator(data.username);
   });
@@ -320,10 +337,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (indicator && indicator.innerText.includes(username)) {
       indicator.innerText = '';
     }
-  }
-  
-  function currentUserName() {
-    return window.currentUsername || "Você";
   }
 });
   

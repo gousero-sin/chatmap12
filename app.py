@@ -143,7 +143,17 @@ def clear_messages():
     except Exception as e:
         return jsonify({'status': 'erro', 'message': str(e)}), 500
 
-    
+@app.route('/get_loading_videos')
+def get_loading_videos():
+    loading_dir = os.path.join(BASE_DIR, 'static', 'videos', 'loading')
+    try:
+        files = os.listdir(loading_dir)
+        # Filtra apenas os arquivos com extensão .mp4
+        videos = [f for f in files if f.lower().endswith('.mp4')]
+        return jsonify({'videos': videos})
+    except Exception as e:
+        return jsonify({'videos': []})
+   
 @app.before_request
 def update_last_active():
     if current_user.is_authenticated:
