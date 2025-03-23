@@ -1,6 +1,6 @@
 License Agreement (Free for Non-Commercial Use)
 
-Copyright (c) 2025 ChatMap
+Copyright (c) 2025 Gousero
 
 This software and associated documentation files (the "Software") are provided free of charge for personal, educational, and non-commercial use only. Any commercial use, including but not limited to selling, licensing, sublicensing, distribution for profit, or any other commercial activities, is strictly prohibited without prior written consent from the copyright holder.
 
