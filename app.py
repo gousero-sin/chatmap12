@@ -139,8 +139,15 @@ def chat():
 def get_users():
     limite = datetime.utcnow() - timedelta(seconds=60)
     users = User.query.filter(User.last_active >= limite).all()
-    users_list = [user.username for user in users]
+    users_list = []
+    for u in users:
+        # Retorna username e, opcionalmente, a url da foto
+        users_list.append({
+            'username': u.username,
+            'profile_image': u.profile_image if u.profile_image else None
+        })
     return jsonify({'users': users_list})
+
 
 @app.route('/upload_file', methods=['POST'])
 @login_required
@@ -150,11 +157,19 @@ def upload_file():
     file = request.files['file']
     if file.filename == '':
         return jsonify({'status': 'error', 'message': 'Arquivo vazio.'})
-    upload_path = os.path.join(BASE_DIR, 'static', 'uploads')
+
+    upload_path = os.path.join(BASE_DIR, 'static', 'uploads', 'chat')
     if not os.path.exists(upload_path):
         os.makedirs(upload_path)
-    file.save(os.path.join(upload_path, file.filename))
-    return jsonify({'status': 'success'})
+
+    filename = secure_filename(file.filename)
+    full_path = os.path.join(upload_path, filename)
+    file.save(full_path)
+
+    # Retorna o caminho relativo para ser usado no chat
+    file_url = f'/static/uploads/chat/{filename}'
+    return jsonify({'status': 'success', 'url': file_url})
+
 
 @app.route('/upload_audio', methods=['POST'])
 @login_required

@@ -312,6 +312,44 @@ button.aero:active {
 }
 
 /* Message Form: fixed height */
+
+.private-chat-card {
+  width: 400px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Container de mensagens privativas */
+.private-messages {
+  height: 300px;
+  overflow-y: auto;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* Botão Glass-Style para “💬” (exemplo) */
+.glass-btn-private {
+  background: rgba(135,206,235,0.3); /* cor azul-céu translúcida */
+  border: 1px solid rgba(135,206,235,0.4);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 5px 8px;
+  font-size: 16px;
+  transition: 0.3s;
+}
+.glass-btn-private:hover {
+  background: rgba(135,206,235,0.5);
+}
+
+
 #message-form {
   display: flex;
   gap: 10px;

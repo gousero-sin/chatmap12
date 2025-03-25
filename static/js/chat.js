@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 6000);
   }
 
+  // Elementos do DOM
   const messageForm = document.getElementById('message-form');
   const messageInput = document.getElementById('message-input');
   const messagesDiv = document.getElementById('messages');
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return window.currentUsername || "Você";
   }
 
-  // Ícone customizado para marcadores no mapa
+  // Ícone customizado para os marcadores do mapa
   const customIcon = L.divIcon({
     html: '<i class="fas fa-map-marker-alt" style="color:#d32f2f;font-size:28px;"></i>',
     className: 'custom-div-icon',
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Dark mode toggle (muda o tile do mapa)
+  // Dark mode toggle: altera também os tiles do mapa
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener('change', function() {
       if (darkModeSwitch.checked) {
@@ -81,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Popup do menu de anexos/áudio com animações
+  // Popup do menu de anexos/áudio com animações (usando Animate.css)
   if (menuBtn && menuPopup) {
     menuBtn.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -104,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Cria um input file oculto para anexar arquivos
+  // Criação de um input file oculto para upload de arquivos
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.style.display = 'none';
@@ -118,19 +119,36 @@ document.addEventListener('DOMContentLoaded', function() {
       fileInput.click();
     });
   }
+
+  // Envia arquivo para o servidor e emite mensagem com URL persistente
   fileInput.addEventListener('change', function(e) {
     const file = fileInput.files[0];
     if (!file) return;
-    const fileURL = URL.createObjectURL(file);
-    const msg = {
-      username: currentUserName(),
-      content: `<a href="${fileURL}" target="_blank">Arquivo: ${file.name}</a>`,
-      is_location: false
-    };
-    socket.emit('send_message', msg);
+    const formData = new FormData();
+    formData.append('file', file);
+    fetch('/upload_file', { method: 'POST', body: formData })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const fileURL = data.url; // ex: "/static/uploads/chat/arquivo.png"
+          const msg = {
+            username: currentUserName(),
+            content: `<a href="${fileURL}" target="_blank">Arquivo: ${file.name}</a>`,
+            is_location: false
+          };
+socket.emit('send_message', msg);
+
+        } else {
+          alert('Erro ao enviar arquivo: ' + data.message);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Erro ao enviar arquivo.');
+      });
   });
 
-  // Tratamento do botão "Gravar Áudio"
+  // Tratamento do botão "Gravar Áudio" com toggle e animação de pulse
   const audioRecordBtn = menuPopup.querySelector('button.menu-option:nth-child(2)');
   if (audioRecordBtn) {
     audioRecordBtn.addEventListener('click', function(e) {
@@ -174,13 +192,27 @@ document.addEventListener('DOMContentLoaded', function() {
       mediaRecorder.stop();
       mediaRecorder.addEventListener('stop', () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioURL = URL.createObjectURL(audioBlob);
-        const msg = {
-          username: currentUserName(),
-          content: `<audio controls src="${audioURL}"></audio>`,
-          is_location: false
-        };
-        socket.emit('send_message', msg);
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'audio.webm');
+        fetch('/upload_audio', { method: 'POST', body: formData })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              const audioURL = data.url; // URL persistente retornada pelo servidor
+              const msg = {
+                username: currentUserName(),
+                content: `<audio controls src="${audioURL}"></audio>`,
+                is_location: false
+              };
+              socket.emit('send_message', msg);
+            } else {
+              alert('Erro ao enviar áudio: ' + data.message);
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            alert('Erro ao enviar áudio.');
+          });
       });
     }
   }
@@ -223,8 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
     lastMessageId = data.id;
     autoScroll();
   });
-
-  // Envio de mensagens de texto
+  
+  // Envio de mensagem de texto
   messageForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const content = messageInput.value;
@@ -234,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
     autoScroll();
   });
   
-  // Envia localização ao clicar no mapa
+  // Envio de localização ao clicar no mapa
   map.on('click', function(e) {
     pendingLocation = e.latlng;
     locationPopup.querySelector('p').textContent = "Deseja enviar esta localização?";
@@ -257,23 +289,35 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => { locationPopup.style.display = 'none'; }, 300);
   });
   
-  // Atualiza periodicamente a lista de usuários
+  // Atualiza periodicamente a lista de usuários online
   setInterval(function() {
     fetch('/get_users')
       .then(response => response.json())
       .then(data => {
-        const newUsers = data.users;
+        let newUsers = data.users;
+        // newUsers é um array de objetos { username, profile_image }
         if (JSON.stringify(newUsers) !== JSON.stringify(currentUsers)) {
           currentUsers = newUsers;
           usersList.innerHTML = '';
-          newUsers.forEach(user => {
-            // Agora link para /profile/<username>
+          newUsers.forEach(userObj => {
             const li = document.createElement('li');
             li.classList.add('user-item');
+            
+            let imgHtml = '';
+            if (userObj.profile_image) {
+              // Exibe a miniatura
+              imgHtml = `<img src="/static/${userObj.profile_image}" 
+                               alt="Foto de ${userObj.username}"
+                               style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right:5px;">`;
+            } else {
+              // Ícone padrão
+              imgHtml = `<i class="fas fa-user-circle" style="margin-right:5px;"></i>`;
+            }
+  
             li.innerHTML = `
-              <i class="fas fa-user-circle"></i>
-              <a href="/profile/${user}" style="color: inherit; text-decoration: none;">
-                <span>${user}</span>
+              ${imgHtml}
+              <a href="/profile/${userObj.username}" style="color: inherit; text-decoration: none;">
+                <span>${userObj.username}</span>
               </a>
             `;
             usersList.appendChild(li);
@@ -282,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }, 5000);
   
-  // Botão de limpar mensagens
+  
   if (clearMessagesBtn) {
     clearMessagesBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -347,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
-
+  
 function setMapView(lat, lng) {
   window.map.setView([lat, lng], 18);
   return false;
